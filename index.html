@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Numerologyist</title>
+<style>
+  :root{
+    --blue:#1565C0;      /* header/blue bar */
+    --yellow:#FFD600;    /* go button */
+    --totgreen:#A5D6A7;  /* totals */
+    --gridyellow:#FFD54F;/* grid tiles */
+    --card-dark:#042E26;
+    --muted:#94a3b8;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(180deg,#062f2a 0%, #021815 100%);
+    color:#fff;
+    display:flex;
+    justify-content:center;
+    padding:18px;
+  }
+  .container{ width:100%; max-width:760px; }
+
+  /* header */
+  .top-row{ display:flex; align-items:center; gap:12px; padding:10px; background:#0d1720; border-radius:10px 10px 0 0;}
+  .logo{ width:48px; height:48px; background:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--blue); font-weight:800;}
+  .title{ font-size:18px; font-weight:800; color:#eafaf1; }
+  .menu{ margin-left:auto; color:#a0b0b6; }
+
+  /* blue bar */
+  .blue-bar{
+    display:flex; align-items:center; gap:12px;
+    padding:14px; background:var(--blue); border:4px solid var(--yellow);
+    border-top:none; border-radius:0 0 10px 10px; margin-top:-6px;
+  }
+  .dob-visible{
+    flex:1;
+    background:transparent;
+    border:0;
+    color:#fff;
+    font-weight:800;
+    font-size:16px;
+    padding:10px 12px;
+    border-radius:6px;
+  }
+  .dob-visible::placeholder{ color:rgba(255,255,255,0.75); }
+  .go-col{ display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+  .set-btn{ width:64px; height:44px; background:var(--yellow); color:#000; font-weight:800; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; border:0; }
+  .weekday{ font-size:13px; color:#eaf6f1; min-height:18px; }
+
+  /* card */
+  .card{ background:linear-gradient(180deg,#063a2f,#042e26); padding:16px; border-radius:10px; margin-top:14px; border:1px solid rgba(255,255,255,0.03); box-shadow:0 8px 22px rgba(0,0,0,0.6); }
+
+  .row{ display:flex; gap:12px; align-items:flex-start; }
+  .left{ flex:1; }
+  .user-line{ margin-bottom:10px; display:flex; align-items:center; gap:10px; }
+  .label{ width:72px; font-weight:800; color:#fff; }
+  .top-input{ flex:1; padding:8px 10px; border-radius:6px; border:0; font-weight:800; color:#000; }
+
+  .totals-col{ display:flex; flex-direction:column; gap:8px; width:110px; align-items:stretch; }
+  .tot-box{ background:var(--totgreen); color:#04331f; font-weight:900; padding:10px 12px; border-radius:8px; text-align:center; min-height:46px; display:flex; align-items:center; justify-content:center; }
+
+  /* D C P */
+  .small-row{ display:flex; gap:10px; margin-top:14px; align-items:center; }
+  .small-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; flex:1; }
+  .small-cell{ background:#fff; color:var(--blue); font-weight:900; padding:10px; text-align:center; border-radius:6px; }
+
+  .year-box{ background:var(--totgreen); color:#04331f; font-weight:900; padding:8px 12px; border-radius:6px; width:96px; text-align:center; }
+
+  .small-row2{ display:flex; gap:10px; margin-top:8px; align-items:center; }
+  .small-input{ padding:8px; border-radius:6px; border:0; text-align:center; width:100%; font-weight:800; color:#000; background:#fff; }
+
+  /* grid */
+  .grid-wrap{ margin-top:14px; }
+  .grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .grid-cell{ background:var(--gridyellow); color:#2b2d42; border-radius:8px; min-height:78px; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:900; border:3px solid rgba(0,0,0,0.05); }
+
+  .info-row{ margin-top:12px; text-align:center; color:#eaf6f1; font-weight:800; min-height:22px; }
+
+  .note{ margin-top:10px; font-size:13px; color:var(--muted); }
+
+  @media (max-width:600px){
+    .totals-col{ width:74px; }
+    .year-box{ width:72px; }
+    .grid-cell{ min-height:62px; font-size:18px; }
+    .label{ width:60px; font-size:13px; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-row">
+      <div class="logo">N</div>
+      <div class="title">Numerologyist</div>
+      <div class="menu">☰</div>
+    </div>
+
+    <div class="blue-bar">
+      <!-- visible dd/mm/yyyy input (text). We'll sync with hidden date input -->
+      <input id="dobVisible" class="dob-visible" placeholder="dd/mm/yyyy" />
+      <input id="dobPicker" type="date" style="display:none" />
+      <div class="go-col">
+        <button id="setBtn" class="set-btn">Set</button>
+        <div class="weekday" id="weekdayDisplay"></div>
+      </div>
+      <div style="width:8px"></div>
+      <div style="display:flex; align-items:center;">
+        <button id="goBtn" class="set-btn" style="width:84px; background:var(--yellow); font-weight:900;">Go</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="left">
+          <div class="user-line">
+            <div class="label">Name :</div>
+            <input id="nameInput" class="top-input" type="text" value="Naraindr Soni" />
+          </div>
+
+          <div class="user-line">
+            <div class="label">Ph.No. :</div>
+            <input id="phoneInput" class="top-input" type="tel" value="" placeholder="Phone number" />
+          </div>
+
+          <div class="user-line">
+            <div class="label">E-Mail :</div>
+            <input id="emailInput" class="top-input" type="email" value="" placeholder="Email" />
+          </div>
+
+          <div class="user-line">
+            <div class="label">Address :</div>
+            <input id="addrInput" class="top-input" type="text" value="" placeholder="Address" />
+          </div>
+        </div>
+
+        <div class="totals-col">
+          <div class="tot-box" id="nameTotal">-</div>
+          <div class="tot-box" id="phoneTotal">-</div>
+          <div class="tot-box" id="emailTotal">-</div>
+          <div class="tot-box" id="addrTotal">-</div>
+        </div>
+      </div>
+
+      <div class="small-row">
+        <div class="small-grid">
+          <div class="small-cell">D</div>
+          <div class="small-cell">C</div>
+          <div class="small-cell">P</div>
+        </div>
+        <div class="year-box" id="yearBoxDisplay">Year</div>
+      </div>
+
+      <div class="small-row2">
+        <input id="Dbox" class="small-input" readonly />
+        <input id="Cbox" class="small-input" readonly />
+        <input id="Pbox" class="small-input" readonly />
+        <input id="yearBox" class="small-input" />
+      </div>
+
+      <div class="grid-wrap">
+        <div class="grid" id="numGrid"></div>
+      </div>
+
+      <div class="info-row" id="infoRow">Click <strong>Go</strong> to process inputs</div>
+      <div class="note">Chaldean mapping for letters; phone = sum of digits. All calculations run on Go.</div>
+    </div>
+  </div>
+
+<script>
+/* Mapping & helpers */
+const CHALDEAN = {A:1,I:1,J:1,Q:1,Y:1,B:2,K:2,R:2,C:3,G:3,L:3,S:3,D:4,M:4,T:4,E:5,H:5,N:5,X:5,U:6,V:6,W:6,O:7,Z:7,F:8,P:8};
+const GRID_ORDER = [8,3,4,1,5,9,6,7,2];
+
+function reduceToSingleDigit(n){ n = Math.abs(Number(n) || 0); while(n>9){ n = String(n).split('').reduce((a,b)=>a+ (+b), 0); } return n; }
+function sumDigitsFromString(s){ return String(s).split('').reduce((a,b)=>a + (b>='0'&&b<='9'? +b : 0), 0); }
+function sumChaldean(str){ let sum=0; for(const c of String(str||'').toUpperCase()) if(CHALDEAN[c]) sum += CHALDEAN[c]; return sum; }
+function weekdayShort(d){ return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]; }
+function computeAge(dob){ const now=new Date(); let y=now.getFullYear()-dob.getFullYear(), m=now.getMonth()-dob.getMonth(), d=now.getDate()-dob.getDate(); if(d<0){ m--; d += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); } if(m<0){ y--; m+=12; } return { years:y, months:m, days:d }; }
+
+/* DOM */
+const dobVisible = document.getElementById('dobVisible');
+const dobPicker = document.getElementById('dobPicker');
+const goBtn = document.getElementById('goBtn');
+const setBtn = document.getElementById('setBtn');
+const weekdayDisplay = document.getElementById('weekdayDisplay');
+const infoRow = document.getElementById('infoRow');
+const nameInput = document.getElementById('nameInput');
+const phoneInput = document.getElementById('phoneInput');
+const emailInput = document.getElementById('emailInput');
+const addrInput = document.getElementById('addrInput');
+const nameTotal = document.getElementById('nameTotal');
+const phoneTotal = document.getElementById('phoneTotal');
+const emailTotal = document.getElementById('emailTotal');
+const addrTotal = document.getElementById('addrTotal');
+const Dbox = document.getElementById('Dbox');
+const Cbox = document.getElementById('Cbox');
+const Pbox = document.getElementById('Pbox');
+const yearBox = document.getElementById('yearBox');
+const yearBoxDisplay = document.getElementById('yearBoxDisplay');
+const numGrid = document.getElementById('numGrid');
+
+/* initialize UI */
+function init(){
+  // populate grid placeholders
+  numGrid.innerHTML = '';
+  for(let i=0;i<9;i++){
+    const d = document.createElement('div');
+    d.className = 'grid-cell';
+    d.textContent = '—';
+    numGrid.appendChild(d);
+  }
+  // default values
+  // visible DOB should be dd/mm/yyyy format; internal date picker uses yyyy-mm-dd
+  const defaultDate = new Date(1978,11,27); // 27 Dec 1978
+  dobPicker.value = defaultDate.toISOString().slice(0,10); // yyyy-mm-dd
+  dobVisible.value = formatDDMMYYYYFromISO(dobPicker.value);
+  yearBox.value = (new Date()).getFullYear();
+  yearBoxDisplay.textContent = yearBox.value;
+}
+init();
+
+/* helpers to format */
+function formatDDMMYYYYFromISO(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return `${d.padStart(2,'0')}/${m.padStart(2,'0')}/${y}`;
+}
+function parseDDMMYYYY(str){
+  if(!str) return null;
+  const m = str.trim().match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(!m) return null;
+  const D = Number(m[1]), M = Number(m[2]), Y = Number(m[3]);
+  const dt = new Date(Y, M-1, D, 12,0,0);
+  if(dt.getFullYear()!==Y || dt.getMonth() !== M-1 || dt.getDate() !== D) return null;
+  return dt;
+}
+
+/* update visible when hidden picker changes */
+dobPicker.addEventListener('change', () => {
+  dobVisible.value = formatDDMMYYYYFromISO(dobPicker.value);
+});
+
+/* clicking the visible DOB opens the native date picker */
+dobVisible.addEventListener('click', () => {
+  dobPicker.showPicker?.(); // modern browsers
+  dobPicker.focus();
+});
+
+/* allow typing dd/mm/yyyy into visible; keep it if valid */
+dobVisible.addEventListener('blur', () => {
+  const parsed = parseDDMMYYYY(dobVisible.value);
+  if(parsed){
+    // sync picker
+    const iso = parsed.toISOString().slice(0,10);
+    dobPicker.value = iso;
+    dobVisible.value = formatDDMMYYYYFromISO(iso);
+  } else {
+    // keep as typed but will validate on Go
+  }
+});
+
+/* grid updater */
+function updateGridFromCounts(counts){
+  const cells = Array.from(numGrid.children);
+  GRID_ORDER.forEach((num, idx) => {
+    const el = cells[idx];
+    const cnt = counts[num] || 0;
+    el.textContent = cnt ? String(num).repeat(cnt) : '*';
+  });
+}
+
+/* main processing on Go */
+function processAll(){
+  // parse dob: prefer visible dd/mm/yyyy; fallback to picker
+  let dobDate = parseDDMMYYYY(dobVisible.value);
+  if(!dobDate && dobPicker.value){
+    dobDate = new Date(dobPicker.value + 'T12:00:00');
+    dobVisible.value = formatDDMMYYYYFromISO(dobPicker.value);
+  }
+  if(!dobDate){
+    weekdayDisplay.textContent = '';
+    infoRow.innerHTML = '<span style="color:#ffb4b4">Invalid date. Use dd/mm/yyyy or pick a date.</span>';
+    nameTotal.textContent = '-'; phoneTotal.textContent='-'; emailTotal.textContent='-'; addrTotal.textContent='-';
+    Dbox.value=''; Cbox.value=''; Pbox.value=''; updateGridFromCounts({});
+    return;
+  }
+
+  // weekday
+  weekdayDisplay.textContent = '- ' + weekdayShort(dobDate);
+
+  // age
+  const age = computeAge(dobDate);
+  infoRow.textContent = `${age.years} Year(s), ${age.months} Month(s), ${age.days} Day(s)`;
+
+  // totals
+  const nameSum = sumChaldean(nameInput.value || '');
+  const phoneSum = sumDigitsFromString(phoneInput.value || '');
+  const emailSum = sumChaldean(emailInput.value || '');
+  const addrSum = sumChaldean(addrInput.value || '');
+
+  nameTotal.textContent = nameSum || 0;
+  phoneTotal.textContent = phoneSum || 0;
+  emailTotal.textContent = emailSum || 0;
+  addrTotal.textContent = addrSum || 0;
+
+  // D: date only reduced
+  const Dval = reduceToSingleDigit(dobDate.getDate());
+  Dbox.value = Dval;
+
+  // C: sum all digits of DDMMYYYY reduced
+  const allDobDigits = String(dobDate.getDate()).padStart(2,'0') + String(dobDate.getMonth()+1).padStart(2,'0') + String(dobDate.getFullYear());
+  const Cval = reduceToSingleDigit(sumDigitsFromString(allDobDigits));
+  Cbox.value = Cval;
+
+  // Year: chosen from yearBox (editable)
+  let chosenYear = parseInt(yearBox.value) || (new Date()).getFullYear();
+  yearBox.value = chosenYear;
+  yearBoxDisplay.textContent = chosenYear;
+
+  // P: sum digits of date + month + chosenYear, reduced
+  const pRaw = String(dobDate.getDate()).padStart(2,'0') + String(dobDate.getMonth()+1).padStart(2,'0') + String(chosenYear);
+  const Pval = reduceToSingleDigit(sumDigitsFromString(pRaw));
+  Pbox.value = Pval;
+
+  // Build digits for grid: digits of DDMMYYYY + D + C
+  const digitChars = (String(dobDate.getDate()).padStart(2,'0') + String(dobDate.getMonth()+1).padStart(2,'0') + String(dobDate.getFullYear())).split('');
+  const digits = digitChars.map(ch => Number(ch)).concat([Number(Dval), Number(Cval)]);
+  const counts = {};
+  for(const d of digits){
+    if(d>=1 && d<=9) counts[d] = (counts[d]||0) + 1;
+  }
+  updateGridFromCounts(counts);
+}
+
+/* events */
+goBtn.addEventListener('click', processAll);
+setBtn.addEventListener('click', () => { dobPicker.showPicker?.(); processAll(); });
+
+// init default display: default date = 1978-12-27, visible dd/mm/yyyy
+window.addEventListener('load', () => {
+  dobPicker.value = '1978-12-27';
+  dobVisible.value = formatDDMMYYYYFromISO('1978-12-27');
+  nameInput.value = 'Naraindr Soni';
+  phoneInput.value = '';
+  emailInput.value = '';
+  addrInput.value = '';
+  yearBox.value = (new Date()).getFullYear();
+  yearBoxDisplay.textContent = yearBox.value;
+  processAll();
+});
+</script>
+</body>
+</html>
